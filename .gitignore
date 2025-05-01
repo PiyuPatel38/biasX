@@ -1,0 +1,38 @@
+# === Python / Flask ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.log
+.venv/
+venv/
+env/
+instance/
+*.sqlite3
+*.db
+
+# === Environment files ===
+.env
+
+# === Node / React / Vite ===
+node_modules/
+dist/
+.cache/
+*.log
+
+# === macOS System ===
+.DS_Store
+
+# === IDEs / Editors ===
+.vscode/
+.idea/
+*.swp
+
+# === Coverage / Testing ===
+coverage/
+htmlcov/
+*.cover
+*.pyc
+.pytest_cache/
