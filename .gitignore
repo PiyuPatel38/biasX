@@ -12,7 +12,7 @@ env/
 instance/
 *.sqlite3
 *.db
-
+backend/.env
 # === Environment files ===
 .env
 
@@ -21,6 +21,7 @@ node_modules/
 dist/
 .cache/
 *.log
+frontend/.env
 
 # === macOS System ===
 .DS_Store
@@ -36,3 +37,4 @@ htmlcov/
 *.cover
 *.pyc
 .pytest_cache/
+

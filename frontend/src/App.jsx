@@ -1,39 +1,104 @@
 import { useState } from 'react';
 import axios from 'axios';
+import './App.css';
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function App() {
   const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
+  const [responses, setResponses] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleCheck = async () => {
+  const handleAnalyze = async () => {
+    if (!input.trim()) return;
+    setLoading(true);
+
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/check', {
-        text: input
-      });
-      setResult(JSON.stringify(res.data[0], null, 2));
+      const res = await axios.post(`${apiUrl}/api/check`, { text: input });
+      const result = {
+        input,
+        ...res.data,
+        id: Date.now(),
+        expanded: true
+      };
+      setResponses((prev) => [result, ...prev]);
     } catch (err) {
-      console.error(err);
-      setResult('❌ Error contacting Flask API');
+      setResponses((prev) => [
+        {
+          input,
+          error: 'API error: ' + err.message,
+          id: Date.now(),
+          expanded: true
+        },
+        ...prev
+      ]);
     }
+
+    setLoading(false);
+    setInput('');
+  };
+
+  const toggleExpand = (id) => {
+    setResponses((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, expanded: !r.expanded } : r))
+    );
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: 'Arial', backgroundColor: '#1e1e2f', color: 'white', minHeight: '100vh' }}>
-      <h1>BiasX: The Mirror of Ethics</h1>
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter a phrase..."
-        style={{ width: '80%', height: '100px', padding: 10, fontSize: 16, borderRadius: 8 }}
-      />
-      <br />
-      <button
-        onClick={handleCheck}
-        style={{ padding: '10px 20px', marginTop: 20, fontSize: 16, backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: 8 }}
-      >
-        Analyze Bias
-      </button>
-      <pre style={{ marginTop: 20, fontSize: 14 }}>{result}</pre>
+    <div className="app-container">
+      <header>
+        <h1>🎭 BiasX</h1>
+        <p>Real-time bias + sentiment analysis</p>
+      </header>
+
+      <div className="input-section">
+  <textarea
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    placeholder="Enter a sentence or paragraph..."
+  />
+  <button onClick={handleAnalyze} className='button-analyse' disabled={loading}>
+    {loading ? 'Analyzing...' : 'Analyze'}
+  </button>
+</div>
+
+
+      <div className="results-section">
+        {responses.map((r, idx) => (
+          <div key={r.id} className="response-card">
+<div className="response-header" onClick={() => toggleExpand(r.id)}>
+  <button
+    className="toggle-btn"
+    onClick={(e) => {
+      e.stopPropagation(); // prevent parent click toggle
+      toggleExpand(r.id);
+    }}
+  >
+    {r.expanded ? '▲' : '▼'}
+  </button>
+  <div className="response-title">
+    <strong>#{responses.length - idx} • Input:</strong> {r.input}
+  </div>
+</div>
+
+
+            {r.expanded && (
+              <div className="response-body">
+                {r.error ? (
+                  <p className="error">{r.error}</p>
+                ) : (
+                  <>
+                    <p><strong>Bias Label:</strong> <span className={r.bias_label === 'GENDER_BIAS' ? 'bias' : 'neutral'}>{r.bias_label}</span></p>
+                    <p><strong>Feedback:</strong> {r.feedback}</p>
+                    <p><strong>Sentiment:</strong> <span className={r.sentiment_label === 'NEGATIVE' ? 'bias' : 'neutral'}>{r.sentiment_label}</span></p>
+                    <p><strong>Sentiment Score:</strong> {r.sentiment_score}</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
